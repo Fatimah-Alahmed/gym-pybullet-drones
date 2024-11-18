@@ -1,9 +1,9 @@
 import numpy as np
 
-from gym_pybullet_drones.envs.BaseRLAviary import BaseRLAviary
+from gym_pybullet_drones.envs.BaseRLAviary_Variable_goal import BaseRLAviary_variable_goal
 from gym_pybullet_drones.utils.enums import DroneModel, Physics, ActionType, ObservationType
 
-class HoverAviary(BaseRLAviary):
+class HoverAviary_variable_goal(BaseRLAviary):
     """Single agent RL problem: hover at position."""
 
     ################################################################################
@@ -48,7 +48,7 @@ class HoverAviary(BaseRLAviary):
             The type of action space (1 or 3D; RPMS, thurst and torques, or waypoint with PID control)
 
         """
-        self.TARGET_POS = np.array([3,2,1])
+        
         self.EPISODE_LEN_SEC = 20
         super().__init__(drone_model=drone_model,
                          num_drones=1,
@@ -86,17 +86,9 @@ class HoverAviary(BaseRLAviary):
         #ret = max(0, 5 - np.linalg.norm(self.TARGET_POS-state[0:3])**4)
 
         #Reward structure 
-        # Distance penalty 
+        # Distance penalty as you originally defined
         distance_penalty = -0.1 * abs(np.linalg.norm(self.TARGET_POS - state[0:3]))
-        if np.linalg.norm(self.TARGET_POS-state[0:3]) < 0.5:
-           distance_penalty=distance_penalty+1500
-        #sperating distance of xy from z
-        x_y_penalty = -0.1 * abs(np.linalg.norm(self.TARGET_POS[0:2] - state[0:2]))
-        z_penalty = -0.1 * abs(self.TARGET_POS[2] - state[2])
-        if np.linalg.norm(self.TARGET_POS[0:2]-state[0:2]) < 0.5:
-           x_y_penalty=x_y_penalty+15
-        #altitidue reward
-        altitude_reward=1.0 if abs(self.TARGET_POS[2]-state[2])<0.1 else 0
+
         # Speed penalty to limit linear velocity
         speed_penalty = -0.05 * np.linalg.norm(state[10:13])  # VX, VY, VZ
 
@@ -105,13 +97,9 @@ class HoverAviary(BaseRLAviary):
 
         # Distance-based speed penalty to slow down as the drone gets closer to the target
         distance_based_speed_penalty = -0.1 * np.linalg.norm(state[10:13]) / (0.3 + np.linalg.norm(self.TARGET_POS - state[0:3]))
-        # Distance penalty 
-        expo_distance_penalty = -0.1 * np.exp(abs(np.linalg.norm(self.TARGET_POS - state[0:3])))
-        if np.linalg.norm(self.TARGET_POS-state[0:3]) < 0.5:
-           expo_distance_penalty=expo_distance_penalty+15
+
         # Total reward
-        ret = angular_velocity_penalty + distance_based_speed_penalty+distance_penalty
-        #+ speed_penalty + angular_velocity_penalty + distance_based_speed_penalty
+        ret = distance_penalty + speed_penalty + angular_velocity_penalty + distance_based_speed_penalty
 
         return ret
 
