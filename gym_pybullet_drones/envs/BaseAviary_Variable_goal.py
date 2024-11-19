@@ -218,9 +218,9 @@ class BaseAviary_variable_goal(gym.Env):
     ################################################################################
     def _generate_random_target_pose(self):
     	"""Generate a random target position within a defined range."""
-    	x_range = [-5, 5]
-    	y_range = [-5, 5]
-    	z_range = [0.5, 2]
+    	x_range = [-10.0, 10.0]
+    	y_range = [-10.0, 10.0]
+    	z_range = [0.5, 3.0]
     	return np.array([np.random.uniform(*x_range), np.random.uniform(*y_range), np.random.uniform(*z_range)])
 
 

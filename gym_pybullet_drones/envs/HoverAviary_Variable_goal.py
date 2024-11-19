@@ -3,7 +3,7 @@ import numpy as np
 from gym_pybullet_drones.envs.BaseRLAviary_Variable_goal import BaseRLAviary_variable_goal
 from gym_pybullet_drones.utils.enums import DroneModel, Physics, ActionType, ObservationType
 
-class HoverAviary_variable_goal(BaseRLAviary):
+class HoverAviary_variable_goal(BaseRLAviary_variable_goal):
     """Single agent RL problem: hover at position."""
 
     ################################################################################
@@ -49,7 +49,7 @@ class HoverAviary_variable_goal(BaseRLAviary):
 
         """
         
-        self.EPISODE_LEN_SEC = 20
+        self.EPISODE_LEN_SEC = 40
         super().__init__(drone_model=drone_model,
                          num_drones=1,
                          initial_xyzs=initial_xyzs,
@@ -85,10 +85,22 @@ class HoverAviary_variable_goal(BaseRLAviary):
         #ret=-0.1*(abs(np.linalg.norm(self.TARGET_POS-state[0:3])))
         #ret = max(0, 5 - np.linalg.norm(self.TARGET_POS-state[0:3])**4)
 
-        #Reward structure 
-        # Distance penalty as you originally defined
+	#Reward structure 
+        # reward for getting closer and penality for being away certain threshold 
+        distance_to_goal=np.linalg.norm(self.TARGET_POS - state[0:3])
+        distance_reward=np.exp(-0.5*distance_to_goal)
+        # Distance penalty 
+        
         distance_penalty = -0.1 * abs(np.linalg.norm(self.TARGET_POS - state[0:3]))
-
+        if np.linalg.norm(self.TARGET_POS-state[0:3]) < 0.5:
+           distance_penalty=distance_penalty+1500
+        #sperating distance of xy from z
+        x_y_penalty = -0.1 * abs(np.linalg.norm(self.TARGET_POS[0:2] - state[0:2]))
+        z_penalty = -0.1 * abs(self.TARGET_POS[2] - state[2])
+        if np.linalg.norm(self.TARGET_POS[0:2]-state[0:2]) < 0.5:
+           x_y_penalty=x_y_penalty+15
+        #altitidue reward
+        altitude_reward=1.0 if abs(self.TARGET_POS[2]-state[2])<0.1 else 0
         # Speed penalty to limit linear velocity
         speed_penalty = -0.05 * np.linalg.norm(state[10:13])  # VX, VY, VZ
 
@@ -97,10 +109,13 @@ class HoverAviary_variable_goal(BaseRLAviary):
 
         # Distance-based speed penalty to slow down as the drone gets closer to the target
         distance_based_speed_penalty = -0.1 * np.linalg.norm(state[10:13]) / (0.3 + np.linalg.norm(self.TARGET_POS - state[0:3]))
-
+        # Distance penalty 
+        expo_distance_penalty = -0.1 * np.exp(abs(np.linalg.norm(self.TARGET_POS - state[0:3])))
+        if np.linalg.norm(self.TARGET_POS-state[0:3]) < 0.5:
+           expo_distance_penalty=expo_distance_penalty+15
         # Total reward
-        ret = distance_penalty + speed_penalty + angular_velocity_penalty + distance_based_speed_penalty
-
+        ret = angular_velocity_penalty + distance_based_speed_penalty+distance_reward
+        #+ speed_penalty + angular_velocity_penalty + distance_based_speed_penalty
         return ret
 
     ################################################################################
@@ -132,7 +147,7 @@ class HoverAviary_variable_goal(BaseRLAviary):
 
         """
         state = self._getDroneStateVector(0)
-        if abs(state[0])>10.0 or abs(state[1])>10.0 or state[2]>2.0:
+        if abs(state[0])>30.0 or abs(state[1])>30.0 or state[2]>4.0:
         #or abs(state[7]) > .4 or abs(state[8]) > .4): # Truncate when the drone is too tilted
        
             return True

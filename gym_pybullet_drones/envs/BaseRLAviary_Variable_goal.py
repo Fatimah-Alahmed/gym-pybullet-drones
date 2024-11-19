@@ -8,7 +8,7 @@ from gym_pybullet_drones.envs.BaseAviary_Variable_goal import BaseAviary_variabl
 from gym_pybullet_drones.utils.enums import DroneModel, Physics, ActionType, ObservationType, ImageType
 from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
 
-class BaseRLAviary_variable_goal(BaseAviary):
+class BaseRLAviary_variable_goal(BaseAviary_variable_goal):
     """Base single and multi-agent environment class for reinforcement learning."""
     
     ################################################################################
