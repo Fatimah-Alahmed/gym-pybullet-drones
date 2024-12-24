@@ -1,9 +1,9 @@
 import numpy as np
 
-from gym_pybullet_drones.envs.BaseRLAviary_Variable_goal import BaseRLAviary_variable_goal
+from gym_pybullet_drones.envs.BaseRLAviary_random import BaseRLAviary_random
 from gym_pybullet_drones.utils.enums import DroneModel, Physics, ActionType, ObservationType
 
-class HoverAviary_variable_goal(BaseRLAviary_variable_goal):
+class HoverAviary_random(BaseRLAviary_random):
     """Single agent RL problem: hover at position."""
 
     ################################################################################

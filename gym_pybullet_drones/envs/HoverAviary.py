@@ -86,7 +86,11 @@ class HoverAviary(BaseRLAviary):
         #ret = max(0, 5 - np.linalg.norm(self.TARGET_POS-state[0:3])**4)
 
         #Reward structure 
+        # reward for getting closer and penality for being away certain threshold 
+        distance_to_goal=np.linalg.norm(self.TARGET_POS - state[0:3])
+        distance_reward=np.exp(-0.5*distance_to_goal)
         # Distance penalty 
+        
         distance_penalty = -0.1 * abs(np.linalg.norm(self.TARGET_POS - state[0:3]))
         if np.linalg.norm(self.TARGET_POS-state[0:3]) < 0.5:
            distance_penalty=distance_penalty+1500
@@ -110,7 +114,7 @@ class HoverAviary(BaseRLAviary):
         if np.linalg.norm(self.TARGET_POS-state[0:3]) < 0.5:
            expo_distance_penalty=expo_distance_penalty+15
         # Total reward
-        ret = angular_velocity_penalty + distance_based_speed_penalty+distance_penalty
+        ret = angular_velocity_penalty + distance_based_speed_penalty+distance_reward
         #+ speed_penalty + angular_velocity_penalty + distance_based_speed_penalty
 
         return ret
